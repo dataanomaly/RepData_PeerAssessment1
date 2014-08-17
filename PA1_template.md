@@ -17,26 +17,34 @@ taken in 5 minute intervals each day.
 
 ## Loading and preprocessing the data
 
-```{r loading, echo = TRUE}
+
+```r
 library(reshape2)
 activity <- read.csv(unz("activity.zip", "activity.csv"))
 ```
 
 ## What is mean total number of steps taken per day?
 
-```{r total, echo = TRUE}
+
+```r
 tsteps <- with(activity, tapply(steps, date, sum, na.rm = T))
 hist(tsteps, main = "Total number of steps taken per day (raw)", xlab = "Total steps")
+```
+
+![plot of chunk total](figure/total.png) 
+
+```r
 meansteps <- format(mean(tsteps), scientific = F)
 mediansteps <- format(median(tsteps), scientific = F)
 ```
 
-The mean total number of steps per day is `r meansteps`.  
-The median total number of steps per day is `r mediansteps`.
+The mean total number of steps per day is 9354.  
+The median total number of steps per day is 10395.
 
 ## What is the average daily activity pattern?
 
-```{r average, echo = TRUE}
+
+```r
 asteps <- with(activity, tapply(steps, factor(interval), mean, na.rm = T))
 amsteps <- melt(asteps)
 
@@ -46,25 +54,32 @@ g <- ggplot(amsteps, aes(x = Var1, y = value)) +
   labs(x = "Interval") +
   labs(y = "Average number of steps")
 print(g)
+```
+
+![plot of chunk average](figure/average.png) 
+
+```r
 max <- amsteps$Var1[which.max(amsteps$value)]
 ```
 
-The five minute interval `r max`, on average across all the days in the dataset, 
+The five minute interval 835, on average across all the days in the dataset, 
 contains the maximum number of steps.
 
 ## Imputing missing values
 
-```{r missing, echo = TRUE}
+
+```r
 missing <- length(which(is.na(activity$steps)==T))
 ```
 
-The total number of missing values in the dataset is `r missing`.
+The total number of missing values in the dataset is 2304.
 
 To determine the effect of missing values upon the results, a data set was 
 created with the missing values replaced with the rounded mean for that 
 5-minute interval.
 
-```{r missing2, echo = TRUE}
+
+```r
 # Replacing the NA values with the rounded mean for that 5-minute interval.
 library(plyr)
 impute.mean <- function(x) replace(x, is.na(x), round(mean(x, na.rm = TRUE)))
@@ -72,15 +87,21 @@ activity2 <- ddply(activity, ~ interval, transform, steps = impute.mean(steps))
 activity2 <- activity2[order(activity2$date), ]
 tsteps2 <- with(activity2, tapply(steps, date, sum, na.rm = T))
 hist(tsteps2, main = "Total number of steps taken per day (imputed)", xlab = "Total Steps")
+```
+
+![plot of chunk missing2](figure/missing2.png) 
+
+```r
 meansteps2 <- format(mean(tsteps2), scientific = F)
 mediansteps2 <- format(median(tsteps2), scientific = F)
 ```
 
-The mean total number of steps per day is `r meansteps2`.  
-The median total number of steps per day is `r mediansteps2`.
+The mean total number of steps per day is 10766.  
+The median total number of steps per day is 10762.
 
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r differences, echo = TRUE}
+
+```r
 activity2$daytype <- as.factor(ifelse(weekdays(
   as.Date(activity2$date)) %in% c("Saturday","Sunday"), "Weekend", "Weekday"))
 
@@ -94,3 +115,5 @@ g <- ggplot(asteps2, aes(x = interval, y = steps)) +
   labs(y = "Average number of steps")
 print(g)
 ```
+
+![plot of chunk differences](figure/differences.png) 
